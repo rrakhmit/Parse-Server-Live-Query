@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Back4App Live Query Testing</title>
+</head>
+<body>
+
+    <h1>Live Query Testing</h1>
+
+    <h2>Get Products</h2>
+    <pre id="products_console"></pre>
+
+    <h2>Live Query Update</h2>
+    <pre id="lq_console"></pre>
+    
+
+    <script src="https://unpkg.com/parse@3.4.3/dist/parse.min.js"></script>
+    <script>
+        /* Ininialize App ID and JS KEY */
+        const AppID = 'fLgsTNXkkdfkKyO0KRDg6zW98TkcYtcvvPfQhf6J';
+        const JavaScriptKey = 'upK6fDG0NhMDigUwOoMwpq0tYNoz7pFicL13lCmo';
+        const LiveQuerySubDomain = 'rakhmit.b4a.io';
+
+        /* Ininialize Parse */
+        Parse.initialize(AppID, JavaScriptKey);
+        Parse.serverURL = "https://parseapi.back4app.com/";
+        
+        /* Get Data From Product Table */
+        (async()=>{
+            const Products = Parse.Object.extend("Products");
+            const query = new Parse.Query(Products);
+            const results = await query.find();
+            document.querySelector('#products_console').innerHTML = JSON.stringify(results);
+        })();
+
+        /* Start Live Query */
+        /* Set Client */
+        var client = new Parse.LiveQueryClient({
+            applicationId: AppID,
+            serverURL: 'wss://' + LiveQuerySubDomain,
+            javascriptKey: JavaScriptKey
+        });
+        client.open();
+
+        /* Subscribe Query */
+        var query = new Parse.Query('Products');
+        query.equalTo("objectId", "o0DQVmFYay");
+        var products = client.subscribe(query);
+
+        /* Update Events */
+        products.on('update', (product) => {
+            document.querySelector('#lq_console').innerHTML = 'Product ID: '+product.id;
+            console.log('Product updated');
+            console.log(product.id);
+        });
+    
+    </script>
+</body>
+</html>
